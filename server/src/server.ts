@@ -1,20 +1,21 @@
+import * as dotenv from "dotenv";
 import * as express from "express";
 import * as http from "http";
 import * as WebSocket from "ws";
 import { v4 as uuid } from "uuid";
 import { AddressInfo } from "net";
-
 import {
     Message,
     Identity,
-    ROLE,
     ControllerStatus,
-    COMMAND,
     StartStation,
     StopStation,
+    Role,
+    Command,
+    parseMessage,
 } from "./messages";
 
-const port = 8999;
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -22,7 +23,7 @@ const wss = new WebSocket.Server({ server, clientTracking: true });
 
 interface SIWebSocket extends WebSocket {
     id?: string;
-    role?: string;
+    role?: Role;
 }
 
 function getAllClients(): SIWebSocket[] {
@@ -43,7 +44,7 @@ function getClient(id: string): SIWebSocket | null {
     return client;
 }
 
-function getClientsByRole(role: string): SIWebSocket[] {
+function getClientsByRole(role: Role): SIWebSocket[] {
     let clients: SIWebSocket[] = [];
     getAllClients().forEach(function (ws) {
         if (ws.role === role) {
@@ -53,19 +54,11 @@ function getClientsByRole(role: string): SIWebSocket[] {
     return clients;
 }
 
-function parseMessage(data: any): Message {
-    const message: Message = JSON.parse(data);
-    if (!("command" in message)) {
-        throw Error("Missing 'command' in message");
-    }
-    return message;
-}
-
 function doIdentify(id: string, message: Identity): void {
     // TODO: Check types on properties
     if (!("role" in message)) {
         throw Error("Missing 'role' in message");
-    } else if (!Object.values(ROLE).includes(message.role)) {
+    } else if (!(message.role in Role)) {
         throw Error(`Role '${message.role}' does not exist`);
     }
 
@@ -90,35 +83,35 @@ function doStatusUpdate(id: string, message: ControllerStatus): void {
         throw Error("Missing 'solenoids' in message");
     }
 
-    const webClients = getClientsByRole(ROLE.web);
+    const webClients = getClientsByRole(Role.WebClient);
     webClients.forEach((ws) => ws.send(JSON.stringify(message)));
     console.log("Sent controller status update to web clients");
 }
 
 function doStartStation(id: string, message: StartStation) {
-    const controllers = getClientsByRole(ROLE.controller);
+    const controllers = getClientsByRole(Role.Controller);
     controllers.forEach((ws) => ws.send(JSON.stringify(message)));
     console.log(`Started station ${message.stationId} on controllers`);
 }
 
 function doStopStation(id: string, message: StopStation) {
-    const controllers = getClientsByRole(ROLE.controller);
+    const controllers = getClientsByRole(Role.Controller);
     controllers.forEach((ws) => ws.send(JSON.stringify(message)));
     console.log(`Stopped station ${message.stationId} on controllers`);
 }
 
 function messageHandler(id: string, message: Message): void {
     switch (message.command) {
-        case COMMAND.identify:
+        case Command.Identify:
             doIdentify(id, <Identity>message);
             break;
-        case COMMAND.statusUpdate:
+        case Command.StatusUpdate:
             doStatusUpdate(id, <ControllerStatus>message);
             break;
-        case COMMAND.startStation:
+        case Command.StartStation:
             doStartStation(id, <StartStation>message);
             break;
-        case COMMAND.stopStation:
+        case Command.StopStation:
             doStopStation(id, <StopStation>message);
             break;
         default:
@@ -133,7 +126,7 @@ wss.on("connection", (ws: SIWebSocket, req: http.IncomingMessage) => {
     const id = uuid();
     console.log(`Assigning id: ${id}`);
     ws.id = id;
-    ws.send(JSON.stringify({ id: id }));
+    ws.send(JSON.stringify({ command: Command.Identify, id: id }));
 
     ws.on("message", function incoming(data) {
         try {
@@ -146,6 +139,6 @@ wss.on("connection", (ws: SIWebSocket, req: http.IncomingMessage) => {
     });
 });
 
-server.listen(port, "0.0.0.0", () => {
-    console.log(`Server started on port ${port}`);
+server.listen(parseInt(process.env.WS_PORT), "0.0.0.0", () => {
+    console.log(`Server started`);
 });

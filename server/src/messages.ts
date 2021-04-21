@@ -1,17 +1,17 @@
-export const ROLE = {
-    controller: "controller",
-    web: "web",
-};
+export enum Role {
+    Controller,
+    WebClient
+}
 
-export const COMMAND = {
-    identify: "identify",
-    statusUpdate: "statusUpdate",
-    startStation: "startStation",
-    stopStation: "stopStation",
-};
+export enum Command {
+    Identify,
+    StatusUpdate,
+    StartStation,
+    StopStation,
+}
 
 export interface Message {
-    command: string;
+    command: Command;
 }
 
 export interface ControllerStatus extends Message {
@@ -22,7 +22,7 @@ export interface ControllerStatus extends Message {
 }
 
 export interface Identity extends Message {
-    role: string;
+    role: Role;
 }
 
 export interface StartStation extends Message {
@@ -31,4 +31,12 @@ export interface StartStation extends Message {
 
 export interface StopStation extends Message {
     stationId: number;
+}
+
+export function parseMessage(data: any): Message {
+    const message: Message = JSON.parse(data);
+    if (!("command" in message)) {
+        throw Error("Missing 'command' in message");
+    }
+    return message;
 }

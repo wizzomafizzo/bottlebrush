@@ -24,8 +24,8 @@ export class Broker {
         this.ws.onopen = (event) => {
             this.ws.send(
                 JSON.stringify({
-                    command: "identify",
-                    role: "web",
+                    command: 0,
+                    role: 1,
                 })
             );
             console.log("Connected");
@@ -35,7 +35,7 @@ export class Broker {
         const msg = JSON.parse(message.data);
 
         switch (msg.command) {
-            case "statusUpdate":
+            case 1:
                 this.status = {
                     date: msg.date,
                     temperature: msg.temperature,
@@ -50,9 +50,9 @@ export class Broker {
     }
     setStation(id: number, status: boolean) {
         this.updatePendingSolenoids(true);
-        let command = "stopStation";
+        let command = 3;
         if (status) {
-            command = "startStation";
+            command = 2;
         }
         this.ws.send(
             JSON.stringify({

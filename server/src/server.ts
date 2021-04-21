@@ -4,46 +4,21 @@ import * as WebSocket from "ws";
 import { v4 as uuid } from "uuid";
 import { AddressInfo } from "net";
 
+import {
+    Message,
+    Identity,
+    ROLE,
+    ControllerStatus,
+    COMMAND,
+    StartStation,
+    StopStation,
+} from "./messages";
+
 const port = 8999;
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, clientTracking: true });
-
-const ROLE = {
-    controller: "controller",
-    web: "web",
-};
-
-const COMMAND = {
-    identify: "identify",
-    statusUpdate: "statusUpdate",
-    startStation: "startStation",
-    stopStation: "stopStation",
-};
-
-interface Message {
-    command: string;
-}
-
-interface ControllerStatus extends Message {
-    date: string;
-    temperature: number;
-    pressure: number;
-    solenoids: boolean[];
-}
-
-interface Identity extends Message {
-    role: string;
-}
-
-interface StartStation extends Message {
-    stationId: number;
-}
-
-interface StopStation extends Message {
-    stationId: number;
-}
 
 interface SIWebSocket extends WebSocket {
     id?: string;

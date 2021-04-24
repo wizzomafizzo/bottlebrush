@@ -22,9 +22,9 @@ void onMessageCallback(WebsocketsMessage message)
         DynamicJsonDocument doc(1024);
         deserializeJson(doc, message.data());
         JsonObject obj = doc.as<JsonObject>();
-        if (obj["command"] == "startStation") {
+        if (obj["command"] == 2) {
             enableStation(obj["stationId"]);
-        } else if (obj["command"] == "stopStation") {
+        } else if (obj["command"] == 3) {
             disableAllStations();
         }
     }
@@ -33,8 +33,8 @@ void onMessageCallback(WebsocketsMessage message)
 void sendIdentify()
 {
     StaticJsonDocument<200> identify;
-    identify["command"] = "identify";
-    identify["role"] = "controller";
+    identify["command"] = 0;
+    identify["role"] = 0;
     String command;
     serializeJson(identify, command);
     CLIENT.send(command);
@@ -47,7 +47,7 @@ void sendStatusUpdate()
         return;
     }
     StaticJsonDocument<300> status;
-    status["command"] = "statusUpdate";
+    status["command"] = 1;
     status["date"] = getDate().timestamp();
     status["pressure"] = getPressure();
     status["temperature"] = getTemperature();

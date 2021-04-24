@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { format, formatDistanceToNow, formatISO } from "date-fns";
+import { format, formatISO } from "date-fns";
 import { existsSync, mkdirSync, appendFileSync } from "fs";
 import { ControllerStatus } from "./messages";
 
@@ -14,7 +14,7 @@ export enum Level {
     ERROR,
     WARN,
     INFO,
-    DEBUG
+    DEBUG,
 }
 
 export class Logging {
@@ -27,13 +27,14 @@ export class Logging {
         let path = `${process.env.LOG_PATH}/${device}`;
         if (!existsSync(process.env.LOG_PATH)) {
             mkdirSync(process.env.LOG_PATH);
-        } else if (!existsSync(path)) {
+        }
+        if (!existsSync(path)) {
             mkdirSync(path);
         }
         this.path = path;
-        let timestamp = format(new Date(), "yyyy-MM-dd")
+        let timestamp = format(new Date(), "yyyy-MM-dd");
         this.file = `${path}/${timestamp}.log`;
-        this.lastLogged = 0; 
+        this.lastLogged = 0;
     }
     log(level: Level, data: string) {
         let timestamp = formatISO(new Date());

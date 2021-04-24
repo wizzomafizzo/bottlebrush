@@ -14,28 +14,31 @@ import {
     Command,
     parseMessage,
 } from "./messages";
+import { Logging, Device, Level } from "./logging";
 
 dotenv.config();
 
+const logger = new Logging(Device.System);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, clientTracking: true });
 
-interface SIWebSocket extends WebSocket {
+interface BBWebSocket extends WebSocket {
     id?: string;
     role?: Role;
+    logger?: Logging;
 }
 
-function getAllClients(): SIWebSocket[] {
-    let clients: SIWebSocket[] = [];
+function getAllClients(): BBWebSocket[] {
+    let clients: BBWebSocket[] = [];
     wss.clients.forEach(function (ws) {
-        clients.push(<SIWebSocket>ws);
+        clients.push(<BBWebSocket>ws);
     });
     return clients;
 }
 
-function getClient(id: string): SIWebSocket | null {
-    let client: SIWebSocket | null;
+function getClient(id: string): BBWebSocket | null {
+    let client: BBWebSocket | null;
     getAllClients().forEach(function (ws) {
         if (ws.id === id) {
             client = ws;
@@ -44,8 +47,8 @@ function getClient(id: string): SIWebSocket | null {
     return client;
 }
 
-function getClientsByRole(role: Role): SIWebSocket[] {
-    let clients: SIWebSocket[] = [];
+function getClientsByRole(role: Role): BBWebSocket[] {
+    let clients: BBWebSocket[] = [];
     getAllClients().forEach(function (ws) {
         if (ws.role === role) {
             clients.push(ws);
@@ -54,25 +57,25 @@ function getClientsByRole(role: Role): SIWebSocket[] {
     return clients;
 }
 
-function doIdentify(id: string, message: Identity): void {
-    // TODO: Check types on properties
+function doIdentify(ws: BBWebSocket, message: Identity): void {
     if (!("role" in message)) {
         throw Error("Missing 'role' in message");
     } else if (!(message.role in Role)) {
         throw Error(`Role '${message.role}' does not exist`);
     }
 
-    const client = getClient(id);
-    if (!client) {
-        throw Error("Client id does not exist");
+    ws.role = message.role;
+    if (ws.role === Role.Controller) {
+        ws.logger = new Logging(Device.Controller);
     }
-
-    client.role = message.role;
-    console.log(`Assigned role '${message.role}' to '${id}'`);
+    logger.log(
+        Level.INFO,
+        `Assigned role '${Role[message.role]}' to '${ws.id}'`
+    );
 }
 
-function doStatusUpdate(id: string, message: ControllerStatus): void {
-    // TODO: Check types on properties
+function doStatusUpdate(ws: BBWebSocket, message: ControllerStatus): void {
+    // TODO: Check types on these too
     if (!("date" in message)) {
         throw Error("Missing 'date' in message");
     } else if (!("temperature" in message)) {
@@ -85,60 +88,65 @@ function doStatusUpdate(id: string, message: ControllerStatus): void {
 
     const webClients = getClientsByRole(Role.WebClient);
     webClients.forEach((ws) => ws.send(JSON.stringify(message)));
-    console.log("Sent controller status update to web clients");
+    ws.logger.logController(message);
 }
 
-function doStartStation(id: string, message: StartStation) {
+function doStartStation(ws: BBWebSocket, message: StartStation) {
     const controllers = getClientsByRole(Role.Controller);
     controllers.forEach((ws) => ws.send(JSON.stringify(message)));
-    console.log(`Started station ${message.stationId} on controllers`);
+    logger.log(
+        Level.INFO,
+        `Started station ${message.stationId} on controllers`
+    );
 }
 
-function doStopStation(id: string, message: StopStation) {
+function doStopStation(ws: BBWebSocket, message: StopStation) {
     const controllers = getClientsByRole(Role.Controller);
     controllers.forEach((ws) => ws.send(JSON.stringify(message)));
-    console.log(`Stopped station ${message.stationId} on controllers`);
+    logger.log(
+        Level.INFO,
+        `Stopped station ${message.stationId} on controllers`
+    );
 }
 
-function messageHandler(id: string, message: Message): void {
+function messageHandler(ws: BBWebSocket, message: Message): void {
     switch (message.command) {
         case Command.Identify:
-            doIdentify(id, <Identity>message);
+            doIdentify(ws, <Identity>message);
             break;
         case Command.StatusUpdate:
-            doStatusUpdate(id, <ControllerStatus>message);
+            doStatusUpdate(ws, <ControllerStatus>message);
             break;
         case Command.StartStation:
-            doStartStation(id, <StartStation>message);
+            doStartStation(ws, <StartStation>message);
             break;
         case Command.StopStation:
-            doStopStation(id, <StopStation>message);
+            doStopStation(ws, <StopStation>message);
             break;
         default:
-            console.log(`Unknown command: ${message.command}`);
+            logger.log(Level.WARN, `Unknown command: ${message.command}`);
     }
 }
 
-wss.on("connection", (ws: SIWebSocket, req: http.IncomingMessage) => {
-    // TODO: This is the server ip, not client
-    const { address, port } = req.socket.address() as AddressInfo;
-    console.log(`Client connected: ${address}:${port}`);
+wss.on("connection", (ws: BBWebSocket, req: http.IncomingMessage) => {
+    logger.log(Level.INFO, `Client connected: ${req.socket.remoteAddress}`);
     const id = uuid();
-    console.log(`Assigning id: ${id}`);
+    logger.log(Level.INFO, `Assigning id: ${id}`);
     ws.id = id;
+
     ws.send(JSON.stringify({ command: Command.Identify, id: id }));
 
-    ws.on("message", function incoming(data) {
+    ws.on("message", (data) => {
         try {
             const message = parseMessage(data);
-            messageHandler(id, message);
+            messageHandler(ws, message);
         } catch (e) {
-            console.log(`Malformed message: ${data}`);
-            console.error(e);
+            logger.log(Level.ERROR, `Malformed message: ${data}`);
+            logger.log(Level.ERROR, e);
         }
     });
 });
 
 server.listen(parseInt(process.env.WS_PORT), "0.0.0.0", () => {
-    console.log(`Server started`);
+    logger.log(Level.INFO, `Server started on port ${process.env.WS_PORT}`);
 });

@@ -32,4 +32,10 @@ void loop()
     sendStatusUpdate();
     powerScreen();
     printStatusScreen();
+
+    if (!CLIENT.available()) {
+        // TODO: This could be a bit more graceful
+        Serial.println("Lost server connection, attempting reconnect...");
+        webSocketsSetup();
+    }
 }

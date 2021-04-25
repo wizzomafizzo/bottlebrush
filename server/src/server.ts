@@ -3,7 +3,6 @@ import * as express from "express";
 import * as http from "http";
 import * as WebSocket from "ws";
 import { v4 as uuid } from "uuid";
-import { AddressInfo } from "net";
 import {
     Message,
     Identity,
@@ -14,14 +13,17 @@ import {
     Command,
     parseMessage,
 } from "./messages";
-import { Logging, Device, Level } from "./logging";
+import { Logging, Category, Level } from "./logging";
+import Weather from "./weather";
+import { inspect } from "util";
 
 dotenv.config();
 
-const logger = new Logging(Device.System);
+const logger = new Logging(Category.System);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, clientTracking: true });
+const weather = new Weather();
 
 interface BBWebSocket extends WebSocket {
     id?: string;
@@ -66,7 +68,7 @@ function doIdentify(ws: BBWebSocket, message: Identity): void {
 
     ws.role = message.role;
     if (ws.role === Role.Controller) {
-        ws.logger = new Logging(Device.Controller);
+        ws.logger = new Logging(Category.Controller);
     }
     logger.log(
         Level.INFO,
@@ -149,4 +151,5 @@ wss.on("connection", (ws: BBWebSocket, req: http.IncomingMessage) => {
 
 server.listen(parseInt(process.env.WS_PORT), "0.0.0.0", () => {
     logger.log(Level.INFO, `Server started on port ${process.env.WS_PORT}`);
+    // weather.getForecast().then((v) => logger.log(Level.INFO, inspect(v, {showHidden: false, depth: null})));
 });

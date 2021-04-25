@@ -5,7 +5,7 @@ import { ControllerStatus } from "./messages";
 
 dotenv.config();
 
-export enum Device {
+export enum Category {
     System = "system",
     Controller = "controller",
 }
@@ -18,13 +18,13 @@ export enum Level {
 }
 
 export class Logging {
-    device: Device;
+    category: Category;
     path: string;
     file: string;
     lastLogged: number;
-    constructor(device: Device) {
-        this.device = device;
-        let path = `${process.env.LOG_PATH}/${device}`;
+    constructor(category: Category) {
+        this.category = category;
+        let path = `${process.env.LOG_PATH}/${category}`;
         if (!existsSync(process.env.LOG_PATH)) {
             mkdirSync(process.env.LOG_PATH);
         }

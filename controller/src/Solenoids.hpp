@@ -94,3 +94,8 @@ bool isSolenoidOn(int id)
 {
     return SOLENOIDS[id];
 }
+
+bool isStationOn(int id)
+{
+    return STATIONS[id - 1];
+}

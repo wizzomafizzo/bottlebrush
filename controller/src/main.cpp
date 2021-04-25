@@ -4,6 +4,7 @@
 #include <WebSockets.hpp>
 #include <Screen.hpp>
 #include <Solenoids.hpp>
+#include <Scheduler.hpp>
 
 void setup()
 {
@@ -28,6 +29,7 @@ void setup()
 void loop()
 {
     CLIENT.poll();
+    checkProgram();
     monitorStations();
     sendStatusUpdate();
     powerScreen();

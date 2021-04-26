@@ -5,6 +5,7 @@
 #include <Screen.hpp>
 #include <Solenoids.hpp>
 #include <Scheduler.hpp>
+#include <Storage.hpp>
 
 void setup()
 {
@@ -22,6 +23,7 @@ void setup()
     screenSetup();
     wifiSetup();
     webSocketsSetup();
+    setupStorage();
 
     SCREEN.clearDisplay();
 }

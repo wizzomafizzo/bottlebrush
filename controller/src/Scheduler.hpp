@@ -7,6 +7,7 @@
 
 #define PROGRAM_OFF -1
 
+// TODO: Should most of this be kept in config?
 struct Program
 {
     int running;   // Current active station

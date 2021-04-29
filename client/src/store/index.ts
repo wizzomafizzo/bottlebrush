@@ -1,4 +1,4 @@
-import { createStore, Store } from "vuex";
+import { createStore } from "vuex";
 import { Broker } from "@/broker";
 
 interface StoreState {
@@ -44,7 +44,7 @@ export default createStore({
         },
         setPendingSolenoids(state: StoreState, status: boolean) {
             state.pendingSolenoids = status;
-        }
+        },
     },
     actions: {
         setDate(context, date: Date) {

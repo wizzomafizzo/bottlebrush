@@ -1,16 +1,18 @@
 <template>
-    <Controller />
+    <router-view />
+    <van-tabbar route>
+        <van-tabbar-item replace to="/controller" icon="home-o"
+            >Controller</van-tabbar-item
+        >
+    </van-tabbar>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Controller from "./components/Controller.vue";
 
 export default defineComponent({
     name: "App",
-    components: {
-        Controller,
-    },
+    components: {},
 });
 </script>
 

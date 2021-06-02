@@ -19,6 +19,7 @@ import { inspect } from "util";
 
 dotenv.config();
 
+
 const logger = new Logging(Category.System);
 const app = express();
 const server = http.createServer(app);
@@ -80,10 +81,6 @@ function doStatusUpdate(ws: BBWebSocket, message: ControllerStatus): void {
     // TODO: Check types on these too
     if (!("date" in message)) {
         throw Error("Missing 'date' in message");
-    } else if (!("temperature" in message)) {
-        throw Error("Missing 'temperature' in message");
-    } else if (!("pressure" in message)) {
-        throw Error("Missing 'pressure' in message");
     } else if (!("solenoids" in message)) {
         throw Error("Missing 'solenoids' in message");
     }

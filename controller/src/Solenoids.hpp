@@ -4,8 +4,8 @@
 
 #include <Arduino.h>
 
-bool SOLENOIDS[SOLENOID_COUNT] = {false, false, false, false, false};
-bool STATIONS[SOLENOID_COUNT - 1] = {false, false, false, false};
+bool SOLENOIDS[SOLENOID_COUNT] = {false, false, false, false};
+bool STATIONS[SOLENOID_COUNT - 1] = {false, false, false};
 unsigned long STATION_START = 0;
 
 void disableAllSolenoids()

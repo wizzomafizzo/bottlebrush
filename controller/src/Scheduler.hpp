@@ -2,7 +2,7 @@
 
 #include <RTClib.h>
 #include <Config.hpp>
-#include <Sensors.hpp>
+#include <Clock.hpp>
 #include <Solenoids.hpp>
 
 #define PROGRAM_OFF -1
@@ -23,8 +23,8 @@ struct Program PROGRAM = {
     100,
     {true, true, false, false, false, true, false},
     5,
-    {true, true, true, false},
-    {2, 1, 2, 0}};
+    {true, true, true},
+    {2, 1, 2}};
 
 // Get adjusted run time of a station in seconds
 int stationRunTime(int id)

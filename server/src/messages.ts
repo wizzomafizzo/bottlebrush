@@ -16,8 +16,6 @@ export interface Message {
 
 export interface ControllerStatus extends Message {
     date: string;
-    temperature: number;
-    pressure: number;
     solenoids: boolean[];
 }
 

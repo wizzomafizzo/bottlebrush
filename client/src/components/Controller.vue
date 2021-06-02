@@ -6,16 +6,6 @@
                 v-bind:icon="dateIcon()"
                 v-bind:value="getDate()"
             />
-            <van-cell
-                title="Temperature"
-                v-bind:icon="temperatureIcon()"
-                v-bind:value="getTemperature() + ' °C'"
-            />
-            <van-cell
-                title="Pressure"
-                v-bind:icon="pressureIcon()"
-                v-bind:value="getPressure() + ' hPa'"
-            />
             <div class="van-hairline--top"></div>
             <div class="solenoids">
                 <van-row>
@@ -78,12 +68,6 @@ export default defineComponent({
         getDate(): string {
             let date = store.state.date;
             return date.toLocaleString("en-AU");
-        },
-        getTemperature(): string {
-            return store.state.temperature.toFixed(1).toString();
-        },
-        getPressure(): string {
-            return store.state.pressure.toFixed(2).toString();
         },
         printSolenoid(state: boolean): string {
             if (state === true) {

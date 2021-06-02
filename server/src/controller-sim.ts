@@ -57,8 +57,6 @@ function generateStatus(): ControllerStatus {
     return {
         command: Command.StatusUpdate,
         date: new Date().toISOString(),
-        temperature: 5 * Math.random() + 20,
-        pressure: 25 * Math.random() + 1000,
         solenoids: solenoids,
     };
 }

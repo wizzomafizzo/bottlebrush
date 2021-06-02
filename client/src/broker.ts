@@ -68,8 +68,6 @@ export class Broker {
     }
     updateStore() {
         store.dispatch("setDate", new Date(this.status.date));
-        store.dispatch("setTemperature", this.status.temperature);
-        store.dispatch("setPressure", this.status.pressure);
         if (!store.state.pendingSolenoids) {
             store.dispatch("setSolenoids", this.status.solenoids);
         }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Config.hpp>
-#include <Sensors.hpp>
+#include <Clock.hpp>
 #include <Solenoids.hpp>
 
 #include <ArduinoWebsockets.h>
@@ -49,8 +49,6 @@ void sendStatusUpdate()
     StaticJsonDocument<300> status;
     status["command"] = 1;
     status["date"] = getDate().timestamp();
-    status["pressure"] = getPressure();
-    status["temperature"] = getTemperature();
     JsonArray solenoidsStatus = status.createNestedArray("solenoids");
     for (int i = 0; i < SOLENOID_COUNT; i++)
     {

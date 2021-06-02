@@ -1,8 +1,7 @@
 #include <Config.hpp>
-#include <Sensors.hpp>
+#include <Clock.hpp>
 #include <Wifi.hpp>
 #include <WebSockets.hpp>
-#include <Screen.hpp>
 #include <Solenoids.hpp>
 #include <Scheduler.hpp>
 #include <Storage.hpp>
@@ -11,21 +10,16 @@ void setup()
 {
     Serial.begin(115200);
 
-    pinMode(SCREEN_WAKE_PIN, INPUT);
-    pinMode(A0, INPUT);
     for (int i = 0; i < SOLENOID_COUNT; i++)
     {
         pinMode(SOLENOID_PINS[i], OUTPUT);
     }
 
     disableAllStations();
-    sensorSetup();
-    screenSetup();
+    clockSetup();
     wifiSetup();
     webSocketsSetup();
     setupStorage();
-
-    SCREEN.clearDisplay();
 }
 
 void loop()
@@ -34,8 +28,6 @@ void loop()
     checkProgram();
     monitorStations();
     sendStatusUpdate();
-    powerScreen();
-    printStatusScreen();
 
     if (!CLIENT.available()) {
         // TODO: This could be a bit more graceful
